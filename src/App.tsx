@@ -1,0 +1,37 @@
+import React from 'react';
+import { Routes, Route } from 'react-router-dom';
+import { GlobalStyle } from './styles/GlobalStyle';
+import Layout from './components/Layout';
+import PostListPage from './pages/PostListPage';
+import PostDetailPage from './pages/PostDetailPage';
+import LoginPage from './pages/LoginPage';
+import ProtectedRoute from './components/ProtectedRoute';
+import WritePage from './pages/WritePage'; // 나중에 생성할 컴포넌트
+
+function App() {
+  return (
+    <>
+      <GlobalStyle />
+      <Layout>
+        <Routes>
+          {/* 공개 경로 */}
+          <Route path="/" element={<PostListPage />} />
+          <Route path="/post/:id" element={<PostDetailPage />} />
+          <Route path="/login" element={<LoginPage />} />
+
+          {/* 관리자 전용 경로 */}
+          <Route
+            path="/write"
+            element={
+              <ProtectedRoute requireAdmin={true}>
+                <WritePage />
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+      </Layout>
+    </>
+  );
+}
+
+export default App;

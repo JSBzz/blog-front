@@ -20,7 +20,7 @@ const Comments = ({ post }: CommentsProps) => {
 
   const handleCommentSubmit = async (author: string, text: string) => {
     try {
-      const newComment = await apiService.addComment(post.id, { author, text });
+      const newComment = await apiService.addComment(post.id!, { author, text });
       // 상태를 업데이트하여 화면을 다시 렌더링
       setComments([...comments, newComment]);
     } catch (error) {

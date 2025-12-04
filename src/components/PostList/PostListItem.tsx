@@ -58,8 +58,8 @@ const PostListItem = ({ post }: PostListItemProps) => {
     <Link to={`/post/${post.id}`} style={{ textDecoration: 'none' }}>
       <ItemContainer>
         <Title>{post.title}</Title>
-        <Summary>{post.summary}</Summary>
-        <Meta>{post.date}</Meta>
+        <Summary>{post.title}</Summary>
+        <Meta>{post.createdAt}</Meta>
         {post.tags && post.tags.length > 0 && (
           <TagsContainer>
             {post.tags.map((tag, index) => (

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { GlobalStyle } from './styles/GlobalStyle';
 import Layout from './components/Layout';
 import PostListPage from './pages/PostListPage';
@@ -28,6 +28,7 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </Layout>
     </>

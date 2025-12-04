@@ -56,7 +56,7 @@ const SubmitButton = styled.button`
 
 const WritePage = () => {
   const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
+  const [contents, setContents] = useState('');
   const [tagsInput, setTagsInput] = useState(''); // 태그 입력을 위한 상태 추가
   const [loading, setLoading] = useState(false);
   const quillRef = useRef<ReactQuill>(null);
@@ -105,7 +105,7 @@ const WritePage = () => {
     setLoading(true);
     const tags = tagsInput.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0); // 태그 파싱
     try {
-      const newPost = await apiService.createPost({ title, content, tags }); // 태그 전달
+      const newPost = await apiService.createPost({ title, contents, tags }); // 태그 전달
       alert('새 글이 성공적으로 작성되었습니다.');
       navigate(`/post/${newPost.id}`);
     } catch (error) {
@@ -137,8 +137,8 @@ const WritePage = () => {
           <ReactQuill
             ref={quillRef}
             theme="snow"
-            value={content}
-            onChange={setContent}
+            value={contents}
+            onChange={setContents}
             modules={modules}
             placeholder="내용을 입력하세요..."
           />

@@ -154,12 +154,12 @@ const PostDetailPage = () => {
   return (
     <DetailContainer>
       <Title>{post.title}</Title>
-      <PostMeta>작성일: {post.date}</PostMeta>
+      <PostMeta>작성일: {post.createdAt}</PostMeta>
       <Content
         className="ql-editor"
-        dangerouslySetInnerHTML={{ __html: post.content || '' }}
+        dangerouslySetInnerHTML={{ __html: post.contents || '' }}
       />
-      <Comments post={post} />
+      {/* <Comments post={post} /> */}
     </DetailContainer>
   );
 };

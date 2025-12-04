@@ -6,11 +6,17 @@ export interface CommentInfo {
 }
 
 export interface PostInfo {
-  id: number;
+  id?: number;
   title: string;
-  summary: string;
-  date: string;
-  content?: string;
+  createdAt?: string;
+  contents?: string;
   tags: string[]; // 태그 필드 추가
-  comments: CommentInfo[];
+  comments: CommentInfo[]
+}
+
+export interface PostReqInfo {
+  id?: number;
+  title: string;
+  contents?: string;
+  tags: string[]; // 태그 필드 추가
 }

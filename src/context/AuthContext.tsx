@@ -1,11 +1,12 @@
-import React, { createContext, useState, useContext, ReactNode } from 'react';
+import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { apiService } from '../api';
+import { jwtDecode } from 'jwt-decode';
 
 // 사용자 정보 타입
 interface User {
   id: string;
   name: string;
-  role: 'admin' | 'user';
+  role: string; // Changed to string to handle potential uppercase from backend
 }
 
 // 1. Context 타입 정의
@@ -24,10 +25,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [error, setError] = useState<string | null>(null); // 에러 상태 추가
 
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        const decodedToken: any = jwtDecode(token);
+        const user = {
+          id: decodedToken.id,
+          name: decodedToken.name,
+          role: decodedToken.role.toLowerCase(), // Convert role to lowercase
+        };
+        setUser(user);
+      } catch (error) {
+        console.error("Failed to decode token from localStorage:", error);
+        localStorage.removeItem('token'); // Clear invalid token
+      }
+    }
+  }, []); // Run only once on mount
+
   const login = async (credentials: { username: string, password: string }) => {
     setError(null); // 로그인 시도 시 에러 초기화
     try {
-      const { user: userData } = await apiService.login(credentials);
+      const { user: apiUserData, token } = await apiService.login(credentials);
+      const userData = {
+        ...apiUserData,
+        role: apiUserData.role.toLowerCase(), // Normalize role to lowercase
+      };
       setUser(userData);
     } catch (err: any) {
       console.error("로그인 실패:", err);
@@ -39,6 +62,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = () => {
     setUser(null);
     setError(null); // 로그아웃 시 에러 상태 초기화
+    localStorage.removeItem('token'); // Remove token from localStorage
   };
 
   return (

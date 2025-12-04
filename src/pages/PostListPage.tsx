@@ -1,32 +1,59 @@
-import React, { useState, useEffect } from 'react';
+import React, { useRef, useCallback } from 'react';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import PostList from '../components/PostList/PostList';
-import { PostInfo } from '../types';
 import { apiService } from '../api';
 
 const PostListPage = () => {
-  const [posts, setPosts] = useState<PostInfo[]>([]);
-  const [loading, setLoading] = useState(true);
+  const {
+    data,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetching,
+    isFetchingNextPage,
+    status,
+  } = useInfiniteQuery({
+    queryKey: ['posts'],
+    queryFn: ({ pageParam = 1 }) => apiService.getPosts(pageParam, 5),
+    getNextPageParam: (lastPage, pages) => {
+      return lastPage.hasNext ? pages.length + 1 : undefined;
+    },
+    initialPageParam: 1,
+  });
 
-  useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        const fetchedPosts = await apiService.getPosts();
-        setPosts(fetchedPosts);
-      } catch (error) {
-        console.error("게시글 목록을 불러오는 데 실패했습니다:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const observer = useRef<IntersectionObserver>();
 
-    fetchPosts();
-  }, []);
-
-  if (loading) {
+  const lastPostElementRef = useCallback(
+    (node: HTMLLIElement) => {
+      if (isFetchingNextPage) return;
+      if (observer.current) observer.current.disconnect();
+      observer.current = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && hasNextPage) {
+          fetchNextPage();
+        }
+      });
+      if (node) observer.current.observe(node);
+    },
+    [isFetchingNextPage, fetchNextPage, hasNextPage]
+  );
+  
+  if (status === 'pending') {
     return <div>로딩 중...</div>;
   }
 
-  return <PostList posts={posts} />;
+  if (status === 'error') {
+    return <div>에러: {error.message}</div>;
+  }
+
+  const posts = data.pages.flatMap(page => page.posts);
+
+  return (
+    <>
+      <PostList posts={posts} ref={lastPostElementRef} />
+      {isFetchingNextPage && <div>로딩 중...</div>}
+      {!hasNextPage && <div>마지막 게시글입니다.</div>}
+    </>
+  );
 };
 
 export default PostListPage;

@@ -72,7 +72,7 @@ const LoginPage = () => {
         <h2>로그인</h2>
         <Input
           type="text"
-          placeholder="아이디 (admin 입력 시 관리자)"
+          placeholder="아이디"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           required

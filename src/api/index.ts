@@ -1,8 +1,7 @@
 // src/api/index.ts
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
-import { mockPosts } from '../data/mockPosts';
-import { PostInfo, CommentInfo, PostReqInfo } from '../types';
+import { PostInfo, CommentInfo, PostReqInfo, PostListResponse } from '../types';
 
 const api = axios.create({
   baseURL: process.env.REACT_APP_API_URL,
@@ -25,16 +24,25 @@ api.interceptors.request.use(
   }
 );
 
-// API 호출을 시뮬레이션하기 위한 딜레이
-const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
-
 const apiService = {
   /**
    * 모든 게시글 목록을 가져옵니다.
    */
-  async getPosts(): Promise<PostInfo[]> {
-    const response = await api.get('/api/posts');
-    return response.data?.content;
+  async getPosts(page = 1, limit = 5): Promise<PostListResponse> {
+    const response = await api.get('/api/posts', {
+      params: {
+        page: page - 1, // Spring Data JPA는 페이지 번호가 0부터 시작합니다.
+        size: limit,
+      },
+    });
+
+    const { content, totalPages, last } = response.data;
+    
+    return {
+      posts: content,
+      totalPages,
+      hasNext: !last,
+    };
   },
 
   /**
@@ -45,12 +53,15 @@ const apiService = {
     return response.data
   },
 
+  async getPostComment(id: number): Promise<CommentInfo[] | undefined> {
+    const response = await api.get(`/api/posts/comment/${id}`);
+    return response.data
+  },
+
   /**
    * 새로운 게시글을 생성합니다.
    */
   async createPost(data: { title: string, contents: string, tags: string[] }): Promise<PostReqInfo> {
-    
-    const plainText = data.contents.replace(/<[^>]*>?/gm, ''); // HTML 태그 제거
     const newPost: PostReqInfo = {
       title: data.title,
       contents: data.contents,
@@ -63,9 +74,9 @@ const apiService = {
   /**
    * 특정 게시글에 댓글을 추가합니다.
    */
-  async addComment(postId: number, data: { author: string, text: string }): Promise<CommentInfo> {
+  async addComment(postId: number, data: { author: string, content: string }): Promise<CommentInfo> {
     console.log(`API: addComment(${postId}) 호출됨`, data);
-    const response = await api.post(`/api/posts/${postId}/comments`, data);
+    const response = await api.post(`/api/posts/comment/${postId}`, data);
     return response.data;
   },
 
@@ -91,4 +102,4 @@ const apiService = {
   }
 };
 
-export { api, apiService };
+export { apiService };

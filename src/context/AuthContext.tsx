@@ -52,6 +52,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         role: apiUserData.role.toLowerCase(), // Normalize role to lowercase
       };
       setUser(userData);
+      localStorage.setItem('token', token); // Store token in localStorage
     } catch (err: any) {
       console.error("로그인 실패:", err);
       setError(err.response?.data?.message || "로그인 중 오류가 발생했습니다."); // API 에러 메시지 활용 또는 일반 메시지

@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useParams } from 'react-router-dom';
 import styled from 'styled-components';
+import { useQuery } from '@tanstack/react-query';
 import { apiService } from '../api';
-import { PostInfo } from '../types';
 import Comments from '../components/Comments/Comments';
 import 'react-quill/dist/quill.snow.css';
 
@@ -112,39 +112,19 @@ const Content = styled.div`
 
 const PostDetailPage = () => {
   const { id } = useParams<{ id: string }>();
-  const [post, setPost] = useState<PostInfo | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!id) return;
+  const { data: post, isLoading, isError, error } = useQuery({
+    queryKey: ['post', id],
+    queryFn: () => apiService.getPost(Number(id)),
+    enabled: !!id,
+  });
 
-    const fetchPost = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const fetchedPost = await apiService.getPost(Number(id));
-        if (fetchedPost) {
-          setPost(fetchedPost);
-        } else {
-          setError('게시글을 찾을 수 없습니다.');
-        }
-      } catch (e) {
-        setError('게시글을 불러오는 중 오류가 발생했습니다.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPost();
-  }, [id]);
-
-  if (loading) {
+  if (isLoading) {
     return <div>로딩 중...</div>;
   }
 
-  if (error) {
-    return <div>{error}</div>;
+  if (isError) {
+    return <div>에러: {error.message}</div>;
   }
 
   if (!post) {
@@ -159,7 +139,7 @@ const PostDetailPage = () => {
         className="ql-editor"
         dangerouslySetInnerHTML={{ __html: post.contents || '' }}
       />
-      {/* <Comments post={post} /> */}
+      <Comments post={post}/>
     </DetailContainer>
   );
 };

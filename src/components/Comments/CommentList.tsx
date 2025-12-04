@@ -29,6 +29,13 @@ const Author = styled.strong`
   color: #007bff; // A nice blue color for the author
 `;
 
+const CommentMeta = styled.span`
+  font-size: 0.8em;
+  color: #6c757d;
+  margin-left: 0.5rem;
+  float: right;
+`;
+
 const Text = styled.p`
   margin: 0.5rem 0 0 0;
   line-height: 1.6; // Improved readability
@@ -40,7 +47,7 @@ interface CommentListProps {
 }
 
 const CommentList = ({ comments }: CommentListProps) => {
-  if (comments.length === 0) {
+  if (comments?.length === 0) {
     return (
       <CommentListContainer>
         <p style={{ margin: '0', textAlign: 'center', color: '#6c757d' }}>아직 댓글이 없습니다.</p>
@@ -50,10 +57,11 @@ const CommentList = ({ comments }: CommentListProps) => {
 
   return (
     <CommentListContainer>
-      {comments.map((comment) => (
+      {comments?.map((comment) => (
         <CommentItem key={comment.id}>
           <Author>{comment.author}</Author>
-          <Text>{comment.text}</Text>
+          {comment.createdAt && <CommentMeta>{comment.createdAt}</CommentMeta>}
+          <Text>{comment.content}</Text>
         </CommentItem>
       ))}
     </CommentListContainer>

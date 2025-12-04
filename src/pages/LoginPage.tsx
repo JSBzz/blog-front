@@ -21,6 +21,7 @@ const LoginForm = styled.form`
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   width: 100%;
   max-width: 400px;
+  margin-bottom: 1rem; /* Add margin below the form */
 `;
 
 const Input = styled.input`
@@ -45,6 +46,13 @@ const Button = styled.button`
   }
 `;
 
+const GoogleLoginButton = styled(Button)`
+  background-color: #db4437; /* Google Red */
+  &:hover {
+    background-color: #c23321;
+  }
+`;
+
 const LoginPage = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -64,6 +72,13 @@ const LoginPage = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleGoogleLogin = () => {
+    console.log('Google login button clicked.');
+    const googleAuthUrl = process.env.REACT_APP_GOOGLE_AUTH_URL || '/oauth2/authorization/google';
+    console.log('Attempting to redirect to:', googleAuthUrl);
+    window.location.href = googleAuthUrl;
   };
 
   return (
@@ -87,6 +102,9 @@ const LoginPage = () => {
         <Button type="submit" disabled={loading}>
           {loading ? '로그인 중...' : '로그인'}
         </Button>
+        <GoogleLoginButton type="button" onClick={handleGoogleLogin}>
+          Google로 로그인
+        </GoogleLoginButton>
       </LoginForm>
     </LoginContainer>
   );

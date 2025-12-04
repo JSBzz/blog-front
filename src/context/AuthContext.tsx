@@ -15,6 +15,7 @@ interface AuthContextType {
   error: string | null; // 에러 메시지를 위한 상태 추가
   login: (credentials: { username: string, password: string }) => Promise<void>;
   logout: () => void;
+  setAuthToken: (token: string) => void; // New function for setting token directly
 }
 
 // 2. Context 생성
@@ -25,34 +26,36 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [error, setError] = useState<string | null>(null); // 에러 상태 추가
 
+  const processToken = (token: string) => {
+    try {
+      const decodedToken: any = jwtDecode(token);
+      const user = {
+        id: decodedToken.id,
+        name: decodedToken.name,
+        role: decodedToken.role.toLowerCase(), // Convert role to lowercase
+      };
+      setUser(user);
+      localStorage.setItem('token', token);
+    } catch (error) {
+      console.error("Failed to decode token:", error);
+      localStorage.removeItem('token'); // Clear invalid token
+      setUser(null);
+      setError("유효하지 않은 토큰입니다.");
+    }
+  };
+
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
-      try {
-        const decodedToken: any = jwtDecode(token);
-        const user = {
-          id: decodedToken.id,
-          name: decodedToken.name,
-          role: decodedToken.role.toLowerCase(), // Convert role to lowercase
-        };
-        setUser(user);
-      } catch (error) {
-        console.error("Failed to decode token from localStorage:", error);
-        localStorage.removeItem('token'); // Clear invalid token
-      }
+      processToken(token);
     }
   }, []); // Run only once on mount
 
   const login = async (credentials: { username: string, password: string }) => {
     setError(null); // 로그인 시도 시 에러 초기화
     try {
-      const { user: apiUserData, token } = await apiService.login(credentials);
-      const userData = {
-        ...apiUserData,
-        role: apiUserData.role.toLowerCase(), // Normalize role to lowercase
-      };
-      setUser(userData);
-      localStorage.setItem('token', token); // Store token in localStorage
+      const { token } = await apiService.login(credentials);
+      processToken(token);
     } catch (err: any) {
       console.error("로그인 실패:", err);
       setError(err.response?.data?.message || "로그인 중 오류가 발생했습니다."); // API 에러 메시지 활용 또는 일반 메시지
@@ -66,8 +69,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.removeItem('token'); // Remove token from localStorage
   };
 
+  const setAuthToken = (token: string) => {
+    processToken(token);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, error, login, logout }}>
+    <AuthContext.Provider value={{ user, error, login, logout, setAuthToken }}>
       {children}
     </AuthContext.Provider>
   );

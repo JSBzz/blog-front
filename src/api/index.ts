@@ -24,6 +24,22 @@ api.interceptors.request.use(
   }
 );
 
+api.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+  (error) => {
+    if (error.response && error.response.status === 403) {
+      console.warn('403 Forbidden received. Clearing token from localStorage.');
+      localStorage.removeItem('token');
+      // Optionally, you might want to redirect to the login page here.
+      // However, redirection logic is typically handled in components or a global router guard,
+      // as it requires access to router history/navigate.
+    }
+    return Promise.reject(error);
+  }
+);
+
 const apiService = {
   /**
    * 모든 게시글 목록을 가져옵니다.
@@ -97,6 +113,17 @@ const apiService = {
       return { user, token: jwt };
     } catch (error) {
       console.error('Login failed:', error);
+      throw error;
+    }
+  },
+
+  async exchangeOAuthCodeForToken(code: string): Promise<string> {
+    try {
+      const response = await api.post('/auth/oauth/token', { code });
+      const { jwt } = response.data;
+      return jwt;
+    } catch (error) {
+      console.error('OAuth token exchange failed:', error);
       throw error;
     }
   }
